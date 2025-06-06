@@ -81,7 +81,7 @@ A comprehensive web-based School Management System built with PHP and MySQL. Thi
 
 ## License
 
-This project is open-source and available under the [MIT License](LICENSE).
+This project is open-source.
 
 ---
 
