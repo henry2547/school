@@ -3,8 +3,8 @@ session_start();
 include('header.php');
 include('dbconnect.php');
 if(isset($_SESSION['staffid'])){
-    if($_SESSION['role']=='Admin'){
-        header("Location: admin/");
+    if($_SESSION['role']=='Finance'){
+        header("Location: finance/");
     }
 }
 ?>
@@ -18,7 +18,7 @@ if(isset($_SESSION['staffid'])){
             <div class="card-body">
                 <form action="logincheck.php" method="post" id="login-form" autocomplete="off">
                     <div class="form-group">
-                        <label for="un">Admin Number</label>
+                        <label for="un">Finance Number</label>
                         <input type="text" class="form-control" name="username" id="un" placeholder="Enter ID number" required autofocus>
                     </div>
                     <div class="form-group">
@@ -42,7 +42,7 @@ if(isset($_SESSION['staffid'])){
         <!-- Loading overlay -->
         <div class="loading-overlay" id="loading-overlay" style="display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(255,255,255,0.7);z-index:9999;align-items:center;justify-content:center;">
             <div class="spinner-border text-success" role="status" style="width:3rem;height:3rem;">
-                <span class="sr-only"></span>
+                <span class="sr-only">Loading...</span>
             </div>
         </div>
     </div>

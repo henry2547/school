@@ -13,7 +13,7 @@ include('header.php');
 	<div class="col-md-1"></div>
 </div>
 
-<div class="container-fluid">
+<!-- <div class="container-fluid">
 	<div class="col-md-2"></div>
 	<div class="col-md-8">
 		<div class="panel panel-inverse">
@@ -27,7 +27,7 @@ include('header.php');
 		</div>
 	</div>
 	<div class="col-md-2"></div>
-</div>
+</div> -->
 
 <?php include('scripts.php'); ?>
 

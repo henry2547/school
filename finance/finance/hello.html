@@ -1,0 +1,143 @@
+<!-- Dashboard Cards -->
+        <div class="row g-4 mb-4">
+            <!-- Total Students -->
+            <div class="col-12 col-md-3">
+                <div class="card dashboard-card text-center p-3">
+                    <div class="dashboard-icon text-primary"><i class="bi bi-people"></i></div>
+                    <h6 class="mb-1">Total Students</h6>
+                    <h4>
+                        <?php
+                        $res = mysqli_query($dbcon, "SELECT COUNT(*) as total FROM student WHERE studentStatus='approved'");
+                        $row = mysqli_fetch_assoc($res);
+                        echo $row['total'];
+                        ?>
+                    </h4>
+                </div>
+            </div>
+            <!-- Total Collected -->
+            <div class="col-12 col-md-3">
+                <div class="card dashboard-card text-center p-3">
+                    <div class="dashboard-icon text-success"><i class="bi bi-wallet2"></i></div>
+                    <h6 class="mb-1">Total Collected</h6>
+                    <h4>
+                        <?php
+                        $res = mysqli_query($dbcon, "SELECT SUM(amount_paid) as total FROM payments WHERE payStatus='approved'");
+                        $row = mysqli_fetch_assoc($res);
+                        echo "Kshs " . number_format($row['total'] ?? 0, 2);
+                        ?>
+                    </h4>
+                </div>
+            </div>
+            <!-- Pending Payments -->
+            <div class="col-12 col-md-3">
+                <div class="card dashboard-card text-center p-3">
+                    <div class="dashboard-icon text-warning"><i class="bi bi-hourglass-split"></i></div>
+                    <h6 class="mb-1">Pending Payments</h6>
+                    <h4>
+                        <?php
+                        $res = mysqli_query($dbcon, "SELECT COUNT(*) as total FROM payments WHERE payStatus='pending'");
+                        $row = mysqli_fetch_assoc($res);
+                        echo $row['total'];
+                        ?>
+                    </h4>
+                </div>
+            </div>
+            <!-- Total Courses -->
+            <div class="col-12 col-md-3">
+                <div class="card dashboard-card text-center p-3">
+                    <div class="dashboard-icon text-info"><i class="bi bi-book"></i></div>
+                    <h6 class="mb-1">Courses</h6>
+                    <h4>
+                        <?php
+                        $res = mysqli_query($dbcon, "SELECT COUNT(*) as total FROM courses");
+                        $row = mysqli_fetch_assoc($res);
+                        echo $row['total'];
+                        ?>
+                    </h4>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+        <!-- Payments Table -->
+        <div class="card shadow mb-4">
+            <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-receipt"></i> All Payments</h5>
+                <form class="d-flex" method="get">
+                    <input class="form-control form-control-sm me-2" type="search" name="search" placeholder="Search RegNo/Code" value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>">
+                    <button class="btn btn-light btn-sm" type="submit"><i class="bi bi-search"></i></button>
+                </form>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-success">
+                            <tr>
+                                <th>#</th>
+                                <th>Reg No</th>
+                                <th>Name</th>
+                                <th>Course</th>
+                                <th>Total Paid</th>
+                                <th>Last Payment</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $sn = 0;
+                            $search = isset($_GET['search']) ? mysqli_real_escape_string($dbcon, $_GET['search']) : '';
+                            $sql = "SELECT 
+                                    student.reg_no, 
+                                    student.fname, 
+                                    student.sname, 
+                                    courses.course_name,
+                                    SUM(payments.amount_paid) as total_paid,
+                                    MAX(payments.date) as last_payment_date,
+                                    MAX(payments.payStatus) as last_status
+                                FROM payments
+                                JOIN student ON payments.reg_no = student.reg_no
+                                JOIN courses ON student.courseId = courses.courseId";
+                            if ($search) {
+                                $sql .= " WHERE student.reg_no LIKE '%$search%' OR payments.code LIKE '%$search%'";
+                            }
+                            $sql .= " GROUP BY payments.reg_no ORDER BY last_payment_date DESC";
+                            $result = mysqli_query($dbcon, $sql);
+                            if ($result && mysqli_num_rows($result) > 0) {
+                                while ($row = mysqli_fetch_assoc($result)) {
+                                    $sn++;
+                                    echo "<tr>";
+                                    echo "<td>{$sn}</td>";
+                                    echo "<td>" . htmlspecialchars($row['reg_no']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row['fname'] . ' ' . $row['sname']) . "</td>";
+                                    echo "<td>" . htmlspecialchars($row['course_name']) . "</td>";
+                                    echo "<td><span class='fw-bold text-success'>Kshs " . number_format($row['total_paid'], 2) . "</span></td>";
+                                    echo "<td><span class='text-secondary'>" . htmlspecialchars($row['last_payment_date']) . "</span></td>";
+                                    echo "<td>";
+                                    if ($row['last_status'] == 'approved') {
+                                        echo "<span class='badge bg-success'>Approved</span>";
+                                    } elseif ($row['last_status'] == 'pending') {
+                                        echo "<span class='badge bg-warning text-dark'>Pending</span>";
+                                    } else {
+                                        echo "<span class='badge bg-danger'>Rejected</span>";
+                                    }
+                                    echo "</td>";
+                                    echo "<td>
+                                        <a href='payment_details.php?reg_no=" . urlencode($row['reg_no']) . "' class='btn btn-info btn-sm'>
+                                            <i class='bi bi-eye'></i> View
+                                        </a>
+                                      </td>";
+                                    echo "</tr>";
+                                }
+                            } else {
+                                echo "<tr><td colspan='8' class='text-center text-muted'>No payment records found.</td></tr>";
+                            }
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>

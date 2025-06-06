@@ -16,9 +16,6 @@ if (isset($_POST['login'])) {
 		$row = mysqli_fetch_array($query);
 		$_SESSION['staffid'] = $row['staffid'];
 		$_SESSION['role'] = $row['status'];
-
-		// update userStatus to active
-		$updateStatus = mysqli_query($dbcon, "UPDATE userlogin SET userStatus='active' WHERE staffid='$username'");
 		
 
 	} else {
