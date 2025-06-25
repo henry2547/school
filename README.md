@@ -45,7 +45,7 @@ A comprehensive web-based School Management System built with PHP and MySQL. Thi
 
 1. **Clone the repository**
     ```bash
-    git clone https://github.com/henry3547/school.git
+    git clone https://github.com/henry2547/school.git
     cd school
     ```
 
