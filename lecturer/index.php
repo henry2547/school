@@ -3,8 +3,8 @@ session_start();
 include('header.php');
 include('dbconnect.php');
 if (isset($_SESSION['staffid'])) {
-    if ($_SESSION['role'] == 'Finance') {
-        header("Location: finance/");
+    if ($_SESSION['role'] == 'Lecturer') {
+        header("Location: lecturer/");
     }
 }
 ?>
@@ -22,7 +22,7 @@ if (isset($_SESSION['staffid'])) {
                 <form action="logincheck.php" method="post" id="login-form" autocomplete="off">
                     <div class="mb-3">
                         <label for="un" class="form-label">
-                            <i class="bi bi-person-badge me-1 text-success"></i>Finance Number
+                            <i class="bi bi-person-badge me-1 text-success"></i>Lecturer Number
                         </label>
                         <div class="input-group">
                             <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>

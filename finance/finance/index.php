@@ -35,6 +35,7 @@ include("dbconnect.php");
             vertical-align: middle;
         }
     </style>
+
 </head>
 
 <body>
@@ -45,6 +46,10 @@ include("dbconnect.php");
                 <i class="bi bi-cash-coin"></i> Finance Manager Panel
             </a>
             <div class="d-flex align-items-center ms-auto">
+                <!-- edit profile -->
+                <a href="edit_profile.php" class="btn btn-outline-light btn-sm me-2" title="Edit Profile">
+                    <i class="bi bi-person-fill"></i>
+                </a>
                 <a href="logout.php" class="btn btn-outline-light btn-sm" title="Logout">
                     <i class="bi bi-box-arrow-right"></i>
                 </a>

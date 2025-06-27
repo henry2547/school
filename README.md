@@ -62,7 +62,7 @@ A comprehensive web-based School Management System built with PHP and MySQL. Thi
 ---
 5. **Passwords**
     - For admin panel, the AdminID is admin100 and password is 1234.
-    - For finance panel, the Finance id is finance100 and password is 1234.
+    - For finance panel, the Finance id is finance101 and password is 1234.
 
 ## Customization
 
