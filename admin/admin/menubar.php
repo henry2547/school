@@ -1,7 +1,7 @@
 <?php
 include('session.php');
 include('dbconnect.php');
-$query = mysqli_query($dbcon, "select * from userlogin where staffid = '$session_id'") or die(mysqli_error($dbcon));
+$query = mysqli_query($dbcon, "SELECT * FROM userlogin WHERE staffid = '$session_id'") or die(mysqli_error($dbcon));
 $row = mysqli_fetch_array($query);
 ?>
 

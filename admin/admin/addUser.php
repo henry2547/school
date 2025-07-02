@@ -11,6 +11,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $role = mysqli_real_escape_string($dbcon, $_POST['role']);
     $status = mysqli_real_escape_string($dbcon, $_POST['status']);
     $password = mysqli_real_escape_string($dbcon, $_POST['password']);
+    $courseId = mysqli_real_escape_string($dbcon, $_POST['courseId']);
+
+    // Set is_lecturer based on role
+    $is_lecturer = ($role === 'Lecturer') ? 1 : 0;
 
     // Hash the password using SHA1
     $hashed_password = sha1($password);
@@ -23,10 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit();
     }
 
-    // Insert new user
-    $insert = mysqli_query($dbcon, "INSERT INTO userlogin (staffid, status, surname, othernames, password, userStatus) VALUES (
-        '$staffid', '$role', '$surname', '$othernames', '$hashed_password', '$status'
+    // if the courseId is not empty, insert into userlogin table with courseId
+    if (!empty($courseId)) {
+        $insert = mysqli_query($dbcon, "INSERT INTO userlogin (staffid, status, surname, othernames, is_lecturer, course, password, userStatus) VALUES (
+        '$staffid', '$role', '$surname', '$othernames', $is_lecturer, '$courseId', '$hashed_password', '$status'
     )");
+    }
+
+    // if the courseId is empty, insert into userlogin without course
+    if (empty($courseId)) {
+        $insert = mysqli_query($dbcon, "INSERT INTO userlogin (staffid, status, surname, othernames, is_lecturer, password, userStatus) VALUES (
+            '$staffid', '$role', '$surname', '$othernames', $is_lecturer, '$hashed_password', '$status'
+        )");
+    }
 
     if ($insert) {
         header("Location: users.php?success=added");

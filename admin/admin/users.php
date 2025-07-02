@@ -21,6 +21,7 @@ include('dbconnect.php');
                 <i class="bi bi-plus-circle"></i> Add User
             </a>
 
+
             <!-- Add User Modal -->
             <div class="modal fade" id="addUserModal" tabindex="-1" aria-labelledby="addUserModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
@@ -53,6 +54,18 @@ include('dbconnect.php');
                                 </select>
                             </div>
                             <div class="mb-3">
+                                <label for="courseId" class="form-label">Assign Course</label>
+                                <select class="form-select" id="courseId" name="courseId" disabled>
+                                    <option value="" selected disabled>Select Course</option>
+                                    <?php
+                                    $courses = mysqli_query($dbcon, "SELECT courseId, course_name FROM courses ORDER BY course_name ASC");
+                                    while ($course = mysqli_fetch_assoc($courses)) {
+                                        echo "<option value='{$course['courseId']}'>{$course['course_name']}</option>";
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="mb-3">
                                 <label for="status" class="form-label">Status</label>
                                 <select class="form-select" id="status" name="status" required>
                                     <option value="active" selected>Active</option>
@@ -75,6 +88,7 @@ include('dbconnect.php');
                     </form>
                 </div>
             </div>
+
 
         </div>
 
@@ -272,6 +286,18 @@ include('dbconnect.php');
                 var username = $(this).data('username');
                 $('#deleteStaffId').val(staffid);
                 $('#deleteUserName').text(username);
+            });
+        });
+    </script>
+
+    <script>
+        $(document).ready(function() {
+            $('#role').on('change', function() {
+                if ($(this).val() === 'Lecturer') {
+                    $('#courseId').prop('disabled', false);
+                } else {
+                    $('#courseId').prop('disabled', true).val('');
+                }
             });
         });
     </script>

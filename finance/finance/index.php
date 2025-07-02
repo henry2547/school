@@ -2,8 +2,6 @@
 session_start();
 include("dbconnect.php");
 
-// Optionally, check if user is logged in as finance manager
-// if (!isset($_SESSION['finance_manager'])) { header("Location: ../login.php"); exit(); }
 ?>
 <!DOCTYPE html>
 <html lang="en">
