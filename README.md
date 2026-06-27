@@ -4,6 +4,72 @@ A comprehensive web-based School Management System built with PHP and MySQL. Thi
 
 ---
 
+## Modern MVC Build
+
+Phase 1 of the new production-oriented MVC application now lives in:
+
+```text
+app/          Controllers, models, views, and core framework helpers
+config/       App and database configuration
+database/     Normalized MySQL schema and seed data
+public/       Front controller, assets, and web entry point
+storage/      Runtime logs and generated files
+```
+
+Implemented features:
+
+- Secure session login/logout with CSRF protection
+- `password_hash()` / `password_verify()` authentication
+- Role-based access control for all requested school roles
+- Dashboard metrics, activity history, Chart.js visualization, dark/light mode
+- User management CRUD with search, role filter, pagination, and audit logs
+- Student management with parent links, class allocation, profile details, status, search, filters, and CRUD
+- Teacher management with departments, qualifications, staff profile data, and CRUD
+- Parent/guardian management and class/stream management
+- Daily attendance sheet with class/date filters and bulk save
+- Fees module with invoices, payments, balances, payment methods, and recent payment history
+- Exams module with exam setup, marks entry, automatic grade calculation, and result filtering
+- Normalized schema for Phase 1-3 modules plus seed data
+
+### Run the New MVC App
+
+1. Import the schema. This development schema recreates the `schoolhub` database tables, so export anything important first if you already imported an older copy:
+
+    ```bash
+    /opt/lampp/bin/mysql -u root < database/schema.sql
+    ```
+
+2. Check database settings in:
+
+    ```text
+    config/database.php
+    ```
+
+3. Visit:
+
+    ```text
+    http://localhost/school/public
+    ```
+
+4. Seed admin login:
+
+    ```text
+    Email: admin@school.test
+    Password: Admin@12345
+    ```
+
+Composer metadata is included for PHP 8.3 and PHPMailer. Run `composer install` when network access is available and email features are being implemented in a later phase.
+
+### Current Development Phases
+
+- Phase 1: Authentication, roles, dashboard, user management.
+- Phase 2: Student, teacher, parent, and class management.
+- Phase 3: Attendance, fees, and examinations.
+
+Next recommended build step: Phase 4 for library circulation, inventory, transport, hostel, and HR.
+
+---
+
 ## Features
 
 ### For Administrators
@@ -42,6 +108,8 @@ A comprehensive web-based School Management System built with PHP and MySQL. Thi
 ---
 
 ## Getting Started
+
+These instructions apply to the legacy portal folders. For the new MVC build, use the "Modern MVC Build" section above.
 
 1. **Clone the repository**
     ```bash

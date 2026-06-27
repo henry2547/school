@@ -1,0 +1,19 @@
+{
+  "name": "schoolhub/school-management-system",
+  "description": "Modern PHP MVC school management system.",
+  "type": "project",
+  "require": {
+    "php": "^8.3",
+    "ext-pdo": "*",
+    "ext-pdo_mysql": "*",
+    "phpmailer/phpmailer": "^6.9"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "app/"
+    },
+    "files": [
+      "app/Core/helpers.php"
+    ]
+  }
+}
