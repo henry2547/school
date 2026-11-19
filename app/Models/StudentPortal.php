@@ -42,7 +42,34 @@ final class StudentPortal
             'payments' => self::fetchAll('SELECT fee_payments.*, fee_invoices.invoice_no FROM fee_payments JOIN fee_invoices ON fee_invoices.id = fee_payments.invoice_id WHERE fee_invoices.student_id = :student_id ORDER BY fee_payments.paid_at DESC', $id),
             'attendance' => self::fetchAll('SELECT attendance_date, status, remarks FROM attendance_records WHERE student_id = :student_id ORDER BY attendance_date DESC LIMIT 30', $id),
             'results' => self::fetchAll('SELECT exams.name AS exam_name, subjects.name AS subject_name, exam_results.marks, exam_results.grade, exam_results.remarks FROM exam_results JOIN exams ON exams.id = exam_results.exam_id JOIN subjects ON subjects.id = exam_results.subject_id WHERE exam_results.student_id = :student_id ORDER BY exams.starts_on DESC, subjects.name', $id),
-            'exams' => $pdo->query('SELECT name, exam_type, starts_on, ends_on, status FROM exams WHERE status IN ("open", "closed", "published") ORDER BY starts_on DESC, name')->fetchAll(),
+            'exams' => self::fetchByClass(
+                'SELECT exams.name, exams.exam_type, exams.starts_on, exams.ends_on, exams.status,
+                        subjects.name AS subject_name,
+                        CONCAT(teachers.first_name, " ", teachers.last_name) AS teacher_name
+                 FROM exams
+                 LEFT JOIN subjects ON subjects.id = exams.subject_id
+                 LEFT JOIN users ON users.id = exams.created_by
+                 LEFT JOIN teachers ON teachers.email = users.email
+                 WHERE exams.status IN ("open", "closed", "published")
+                   AND (
+                       exams.class_stream_id = :class_stream_id
+                       OR (exams.class_stream_id IS NULL AND exams.created_by IS NULL)
+                   )
+                 ORDER BY exams.starts_on DESC, exams.name',
+                $classId
+            ),
+            'assignments' => self::fetchByClass(
+                'SELECT assignments.title, assignments.description, assignments.due_at, assignments.status,
+                        subjects.name AS subject_name,
+                        CONCAT(teachers.first_name, " ", teachers.last_name) AS teacher_name
+                 FROM assignments
+                 JOIN subjects ON subjects.id = assignments.subject_id
+                 JOIN teachers ON teachers.id = assignments.teacher_id
+                 WHERE assignments.class_stream_id = :class_stream_id
+                   AND assignments.status = "published"
+                 ORDER BY assignments.due_at, assignments.title',
+                $classId
+            ),
             'announcements' => self::fetchByClass(
                 'SELECT announcements.title, announcements.body, announcements.audience, announcements.published_at,
                         COALESCE(CONCAT(users.first_name, " ", users.last_name), "School") AS sender_name

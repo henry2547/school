@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS discipline_cases;
 DROP TABLE IF EXISTS clinic_visits;
 DROP TABLE IF EXISTS school_events;
 DROP TABLE IF EXISTS announcements;
+DROP TABLE IF EXISTS assignments;
 DROP TABLE IF EXISTS leave_requests;
 DROP TABLE IF EXISTS employees;
 DROP TABLE IF EXISTS hostel_allocations;
@@ -254,13 +255,19 @@ CREATE TABLE fee_payments (
 CREATE TABLE exams (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     term_id BIGINT UNSIGNED NULL,
+    class_stream_id BIGINT UNSIGNED NULL,
+    subject_id BIGINT UNSIGNED NULL,
+    created_by BIGINT UNSIGNED NULL,
     name VARCHAR(120) NOT NULL,
     exam_type ENUM('cat', 'midterm', 'endterm', 'mock', 'national') NOT NULL,
     starts_on DATE NOT NULL,
     ends_on DATE NOT NULL,
     status ENUM('draft', 'open', 'closed', 'published') NOT NULL DEFAULT 'draft',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_exams_term FOREIGN KEY (term_id) REFERENCES terms(id) ON DELETE SET NULL
+    CONSTRAINT fk_exams_term FOREIGN KEY (term_id) REFERENCES terms(id) ON DELETE SET NULL,
+    CONSTRAINT fk_exams_class FOREIGN KEY (class_stream_id) REFERENCES class_streams(id) ON DELETE SET NULL,
+    CONSTRAINT fk_exams_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE SET NULL,
+    CONSTRAINT fk_exams_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE exam_results (
@@ -280,6 +287,23 @@ CREATE TABLE exam_results (
     CONSTRAINT fk_exam_results_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
     CONSTRAINT fk_exam_results_subject FOREIGN KEY (subject_id) REFERENCES subjects(id),
     CONSTRAINT fk_exam_results_user FOREIGN KEY (entered_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE assignments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    teacher_id BIGINT UNSIGNED NOT NULL,
+    class_stream_id BIGINT UNSIGNED NOT NULL,
+    subject_id BIGINT UNSIGNED NOT NULL,
+    title VARCHAR(190) NOT NULL,
+    description TEXT NOT NULL,
+    due_at DATETIME NOT NULL,
+    status ENUM('published', 'closed') NOT NULL DEFAULT 'published',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_assignments_class_due (class_stream_id, due_at),
+    CONSTRAINT fk_assignments_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
+    CONSTRAINT fk_assignments_class FOREIGN KEY (class_stream_id) REFERENCES class_streams(id) ON DELETE CASCADE,
+    CONSTRAINT fk_assignments_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 CREATE TABLE library_books (

@@ -47,6 +47,22 @@
     }
   });
 
+  const markExam = document.getElementById('mark-exam');
+  const markStudent = document.getElementById('mark-student');
+  const filterMarkStudents = () => {
+    const classId = markExam?.selectedOptions[0]?.dataset.class || '';
+    markStudent?.querySelectorAll('option[data-class]').forEach((option) => {
+      const available = !classId || option.dataset.class === classId;
+      option.hidden = !available;
+      option.disabled = !available;
+      if (!available && option.selected) {
+        markStudent.value = '';
+      }
+    });
+  };
+  markExam?.addEventListener('change', filterMarkStudents);
+  filterMarkStudents();
+
   document.querySelectorAll('form[data-confirm]').forEach((form) => {
     form.addEventListener('submit', (event) => {
       if (!window.confirm(form.dataset.confirm || 'Continue?')) {

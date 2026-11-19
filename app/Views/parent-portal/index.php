@@ -76,14 +76,23 @@ $resultsCount = array_sum(array_map(static fn ($child) => count($child['results'
                                         <h3 class="h6">Exam Schedule</h3>
                                         <div class="table-responsive">
                                             <table class="table table-sm align-middle">
-                                                <thead><tr><th>Exam</th><th>Dates</th><th>Status</th></tr></thead>
+                                                <thead><tr><th>Exam</th><th>Subject</th><th>Teacher</th><th>Dates</th><th>Status</th></tr></thead>
                                                 <tbody>
                                                 <?php foreach ($child['exams'] as $exam): ?>
-                                                    <tr><td><?= e($exam['name']) ?></td><td><?= e($exam['starts_on']) ?> – <?= e($exam['ends_on']) ?></td><td><span class="badge text-bg-<?= $exam['status'] === 'published' ? 'success' : 'primary' ?>"><?= e(ucfirst($exam['status'])) ?></span></td></tr>
+                                                    <tr><td><?= e($exam['name']) ?></td><td><?= e($exam['subject_name'] ?? 'School-wide') ?></td><td><?= e($exam['teacher_name'] ?? 'School') ?></td><td><?= e($exam['starts_on']) ?> – <?= e($exam['ends_on']) ?></td><td><span class="badge text-bg-<?= $exam['status'] === 'published' ? 'success' : 'primary' ?>"><?= e(ucfirst($exam['status'])) ?></span></td></tr>
                                                 <?php endforeach; ?>
-                                                <?php if ($child['exams'] === []): ?><tr><td colspan="3" class="text-muted">No exams have been announced.</td></tr><?php endif; ?>
+                                                <?php if ($child['exams'] === []): ?><tr><td colspan="5" class="text-muted">No exams have been announced.</td></tr><?php endif; ?>
                                                 </tbody>
                                             </table>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <h3 class="h6">Class Assignments</h3>
+                                        <div class="activity-list">
+                                            <?php foreach ($child['assignments'] as $assignment): ?>
+                                                <div class="activity-item"><span class="activity-dot"></span><div><strong><?= e($assignment['title']) ?></strong><p class="mb-1"><?= e($assignment['subject_name']) ?> · <?= e($assignment['teacher_name']) ?> · Due <?= e(date('M j, Y H:i', strtotime($assignment['due_at']))) ?></p><p class="mb-0"><?= nl2br(e($assignment['description'])) ?></p></div></div>
+                                            <?php endforeach; ?>
+                                            <?php if ($child['assignments'] === []): ?><p class="text-muted mb-0">No assignments published for this class.</p><?php endif; ?>
                                         </div>
                                     </div>
                                     <div class="col-lg-4">

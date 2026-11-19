@@ -74,6 +74,14 @@ Implemented features:
     /opt/lampp/bin/mysql -u root schoolhub < database/migrations/20261119_teacher_class_notices.sql
     ```
 
+    Then add teacher-created assessments and class assignments:
+
+    ```bash
+    /opt/lampp/bin/mysql -u root schoolhub < database/migrations/20261119_teacher_assessments.sql
+    ```
+
+    Teachers can schedule CATs and exams for assigned class/subject pairs, publish homework with due dates and instructions, and enter marks for active learners in those exams. Students see their class schedules and assignments. Parents see the corresponding schedules and assignments for each linked child, and marks saved for that child.
+
 Composer metadata is included for PHP 8.3 and PHPMailer. Run `composer install` when network access is available and email features are being implemented in a later phase.
 
 ### Current Development Phases

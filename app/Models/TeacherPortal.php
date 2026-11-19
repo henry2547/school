@@ -34,8 +34,41 @@ final class TeacherPortal
                 ['class_teacher_id' => $id, 'subject_teacher_id' => $id]
             ),
             'assignments' => self::all('SELECT subjects.name AS subject_name, subjects.code, class_streams.name AS class_name, class_streams.stream FROM teacher_subjects JOIN subjects ON subjects.id = teacher_subjects.subject_id JOIN class_streams ON class_streams.id = teacher_subjects.class_stream_id WHERE teacher_subjects.teacher_id = :teacher_id ORDER BY class_streams.name, subjects.name', ['teacher_id' => $id]),
+            'assessment_options' => self::all(
+                'SELECT teacher_subjects.class_stream_id, teacher_subjects.subject_id,
+                        subjects.name AS subject_name, class_streams.name AS class_name, class_streams.stream
+                 FROM teacher_subjects
+                 JOIN subjects ON subjects.id = teacher_subjects.subject_id
+                 JOIN class_streams ON class_streams.id = teacher_subjects.class_stream_id
+                 WHERE teacher_subjects.teacher_id = :teacher_id
+                 ORDER BY class_streams.name, class_streams.stream, subjects.name',
+                ['teacher_id' => $id]
+            ),
+            'assessments' => self::all(
+                'SELECT exams.id, exams.name, exams.exam_type, exams.starts_on, exams.ends_on, exams.status,
+                        exams.class_stream_id, exams.subject_id, subjects.name AS subject_name,
+                        class_streams.name AS class_name, class_streams.stream
+                 FROM exams
+                 JOIN subjects ON subjects.id = exams.subject_id
+                 JOIN class_streams ON class_streams.id = exams.class_stream_id
+                 WHERE exams.created_by = :exam_user_id
+                 ORDER BY exams.starts_on DESC, exams.name',
+                ['exam_user_id' => (int)$teacher['user_id']]
+            ),
+            'class_tasks' => self::all(
+                'SELECT assignments.title, assignments.description, assignments.due_at,
+                        assignments.status, subjects.name AS subject_name,
+                        class_streams.name AS class_name, class_streams.stream
+                 FROM assignments
+                 JOIN subjects ON subjects.id = assignments.subject_id
+                 JOIN class_streams ON class_streams.id = assignments.class_stream_id
+                 WHERE assignments.teacher_id = :task_teacher_id
+                 ORDER BY assignments.due_at DESC
+                 LIMIT 30',
+                ['task_teacher_id' => $id]
+            ),
             'classrooms' => self::all('SELECT class_streams.id, class_streams.name, class_streams.stream, COUNT(students.id) AS student_count FROM class_streams LEFT JOIN students ON students.class_stream_id = class_streams.id AND students.status = "active" WHERE class_streams.class_teacher_id = :teacher_id GROUP BY class_streams.id ORDER BY class_streams.name', ['teacher_id' => $id]),
-            'students' => self::all('SELECT DISTINCT students.admission_no, students.first_name, students.last_name, CONCAT(class_streams.name, " ", class_streams.stream) AS class_name FROM students JOIN class_streams ON class_streams.id = students.class_stream_id LEFT JOIN teacher_subjects ON teacher_subjects.class_stream_id = class_streams.id WHERE (class_streams.class_teacher_id = :class_teacher_id OR teacher_subjects.teacher_id = :subject_teacher_id) AND students.status = "active" ORDER BY students.first_name, students.last_name', ['class_teacher_id' => $id, 'subject_teacher_id' => $id]),
+            'students' => self::all('SELECT DISTINCT students.id, students.admission_no, students.first_name, students.last_name, students.class_stream_id, CONCAT(class_streams.name, " ", class_streams.stream) AS class_name FROM students JOIN class_streams ON class_streams.id = students.class_stream_id LEFT JOIN teacher_subjects ON teacher_subjects.class_stream_id = class_streams.id WHERE (class_streams.class_teacher_id = :class_teacher_id OR teacher_subjects.teacher_id = :subject_teacher_id) AND students.status = "active" ORDER BY students.first_name, students.last_name', ['class_teacher_id' => $id, 'subject_teacher_id' => $id]),
             'attendance' => self::all(
                 'SELECT attendance_records.attendance_date, attendance_records.status, COUNT(*) AS count
                  FROM attendance_records
@@ -144,6 +177,114 @@ final class TeacherPortal
             'teacher_email' => $email,
         ]);
         return $stmt->rowCount() === 1;
+    }
+
+    public static function createExam(
+        string $email,
+        int $userId,
+        int $classStreamId,
+        int $subjectId,
+        string $name,
+        string $examType,
+        string $startsOn,
+        string $endsOn
+    ): bool {
+        $stmt = Database::connection()->prepare(
+            'INSERT INTO exams (class_stream_id, subject_id, created_by, name, exam_type, starts_on, ends_on, status)
+             SELECT teacher_subjects.class_stream_id, teacher_subjects.subject_id, :created_by,
+                    :exam_name, :exam_type, :starts_on, :ends_on, "open"
+             FROM teacher_subjects
+             JOIN teachers ON teachers.id = teacher_subjects.teacher_id
+             WHERE teachers.email = :teacher_email
+               AND teacher_subjects.class_stream_id = :class_stream_id
+               AND teacher_subjects.subject_id = :subject_id'
+        );
+        $stmt->execute([
+            'created_by' => $userId,
+            'exam_name' => $name,
+            'exam_type' => $examType,
+            'starts_on' => $startsOn,
+            'ends_on' => $endsOn,
+            'teacher_email' => $email,
+            'class_stream_id' => $classStreamId,
+            'subject_id' => $subjectId,
+        ]);
+        return $stmt->rowCount() === 1;
+    }
+
+    public static function createAssignment(
+        string $email,
+        int $classStreamId,
+        int $subjectId,
+        string $title,
+        string $description,
+        string $dueAt
+    ): bool {
+        $stmt = Database::connection()->prepare(
+            'INSERT INTO assignments (teacher_id, class_stream_id, subject_id, title, description, due_at)
+             SELECT teachers.id, teacher_subjects.class_stream_id, teacher_subjects.subject_id,
+                    :assignment_title, :assignment_description, :due_at
+             FROM teacher_subjects
+             JOIN teachers ON teachers.id = teacher_subjects.teacher_id
+             WHERE teachers.email = :teacher_email
+               AND teacher_subjects.class_stream_id = :class_stream_id
+               AND teacher_subjects.subject_id = :subject_id'
+        );
+        $stmt->execute([
+            'assignment_title' => $title,
+            'assignment_description' => $description,
+            'due_at' => $dueAt,
+            'teacher_email' => $email,
+            'class_stream_id' => $classStreamId,
+            'subject_id' => $subjectId,
+        ]);
+        return $stmt->rowCount() === 1;
+    }
+
+    public static function saveMark(
+        int $userId,
+        int $examId,
+        int $studentId,
+        float $marks,
+        string $remarks
+    ): bool {
+        $stmt = Database::connection()->prepare(
+            'INSERT INTO exam_results (exam_id, student_id, subject_id, marks, grade, remarks, entered_by)
+             SELECT exams.id, students.id, exams.subject_id, :marks, :grade, :remarks, :entered_by
+             FROM exams
+             JOIN students ON students.id = :student_id
+             JOIN teacher_subjects
+               ON teacher_subjects.class_stream_id = exams.class_stream_id
+              AND teacher_subjects.subject_id = exams.subject_id
+             WHERE exams.id = :exam_id
+               AND exams.created_by = :exam_creator_id
+               AND exams.status IN ("open", "closed")
+               AND students.class_stream_id = exams.class_stream_id
+               AND students.status = "active"
+               AND teacher_subjects.teacher_id = (
+                   SELECT teachers.id
+                   FROM teachers
+                   JOIN users ON users.email = teachers.email
+                   WHERE users.id = :teacher_user_id
+               )
+             ON DUPLICATE KEY UPDATE
+                 marks = VALUES(marks),
+                 grade = VALUES(grade),
+                 remarks = VALUES(remarks),
+                 entered_by = VALUES(entered_by),
+                 updated_at = CURRENT_TIMESTAMP'
+        );
+        $stmt->execute([
+            'marks' => $marks,
+            'grade' => Exam::grade($marks),
+            'remarks' => $remarks !== '' ? $remarks : null,
+            'entered_by' => $userId,
+            'student_id' => $studentId,
+            'exam_id' => $examId,
+            'exam_creator_id' => $userId,
+            'teacher_user_id' => $userId,
+        ]);
+        return $stmt->rowCount() > 0;
     }
 
     private static function all(string $sql, array $params): array
