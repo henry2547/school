@@ -20,6 +20,22 @@
     });
   });
 
+  const invoiceSelect = document.getElementById('invoice_id');
+  const balanceOutput = document.getElementById('payment-balance');
+  const amountInput = document.getElementById('amount_paid');
+  const updatePaymentBalance = () => {
+    const option = invoiceSelect?.selectedOptions[0];
+    const balance = Number(option?.dataset.balance || 0);
+    if (balanceOutput) {
+      balanceOutput.textContent = `Outstanding balance: KES ${balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (amountInput) {
+      amountInput.max = balance || '';
+    }
+  };
+  invoiceSelect?.addEventListener('change', updatePaymentBalance);
+  updatePaymentBalance();
+
   const chart = document.getElementById('dashboardChart');
   if (chart && window.Chart) {
     new Chart(chart, {

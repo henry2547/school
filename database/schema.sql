@@ -525,6 +525,9 @@ INSERT INTO permissions (name, slug, module) VALUES
 ('Manage Finance', 'finance.manage', 'finance'),
 ('View Exams', 'exams.view', 'exams'),
 ('Manage Exams', 'exams.manage', 'exams'),
+('Access Student Portal', 'student.portal', 'student_portal'),
+('Access Teacher Portal', 'teacher.portal', 'teacher_portal'),
+('Access Parent Portal', 'parent.portal', 'parent_portal'),
 ('View Operations', 'operations.view', 'operations'),
 ('Manage Operations', 'operations.manage', 'operations'),
 ('View Reports', 'reports.view', 'reports'),
@@ -567,11 +570,21 @@ WHERE roles.slug IN ('teacher', 'class-teacher');
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
+JOIN permissions ON permissions.slug = 'teacher.portal'
+WHERE roles.slug IN ('teacher', 'class-teacher');
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT roles.id, permissions.id
+FROM roles
+JOIN permissions ON permissions.slug = 'parent.portal'
+WHERE roles.slug = 'parent';
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT roles.id, permissions.id
+FROM roles
 JOIN permissions
     ON permissions.slug IN ('dashboard.view', 'students.view')
 WHERE roles.slug IN (
-    'student',
-    'parent',
     'librarian',
     'nurse',
     'transport-manager',
@@ -579,6 +592,12 @@ WHERE roles.slug IN (
     'security-officer',
     'store-keeper'
 );
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT roles.id, permissions.id
+FROM roles
+JOIN permissions ON permissions.slug IN ('dashboard.view', 'student.portal')
+WHERE roles.slug = 'student';
 
 INSERT INTO users (role_id, first_name, last_name, email, phone, password_hash, status)
 SELECT id, 'System', 'Admin', 'admin@school.test', '+254700000000',
@@ -634,6 +653,21 @@ INSERT INTO student_parent (student_id, parent_id, is_primary) VALUES
 (1, 1, 1),
 (2, 2, 1),
 (3, 3, 1);
+
+INSERT INTO users (role_id, first_name, last_name, email, phone, password_hash, status)
+SELECT id, 'Amina', 'Otieno', 'amina.otieno@school.test', '+254711111111',
+       '$2y$10$FBVJjt7cPSNMKhfVT3HIkOuD3BhUkQP.S5o.3UXai/6Tn6DUotD2S', 'active'
+FROM roles WHERE slug = 'student';
+
+INSERT INTO users (role_id, first_name, last_name, email, phone, password_hash, status)
+SELECT id, 'Grace', 'Njeri', 'grace.njeri@school.test', '+254733100001',
+       '$2y$10$FBVJjt7cPSNMKhfVT3HIkOuD3BhUkQP.S5o.3UXai/6Tn6DUotD2S', 'active'
+FROM roles WHERE slug = 'teacher';
+
+INSERT INTO users (role_id, first_name, last_name, email, phone, password_hash, status)
+SELECT id, 'Mary', 'Otieno', 'mary.otieno@example.test', '+254711111111',
+       '$2y$10$FBVJjt7cPSNMKhfVT3HIkOuD3BhUkQP.S5o.3UXai/6Tn6DUotD2S', 'active'
+FROM roles WHERE slug = 'parent';
 
 INSERT INTO attendance_records (student_id, class_stream_id, attendance_date, status, created_by) VALUES
 (1, 1, CURRENT_DATE, 'present', 1),

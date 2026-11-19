@@ -58,6 +58,16 @@ Implemented features:
     Password: Admin@12345
     ```
 
+5. Seed role portal logins (the password for each is `Admin@12345`):
+
+    ```text
+    Student: amina.otieno@school.test
+    Teacher: grace.njeri@school.test
+    Parent:  mary.otieno@example.test
+    ```
+
+    Student accounts open **My School**, showing only their own profile and school records. Teacher accounts open **Teaching Dashboard**, scoped to their profile, assigned classes and subjects, learners, submitted attendance and marks, staff notices, and events. Parent accounts open **Parent Dashboard**, showing only linked children and their fee, attendance, and academic records.
+
 Composer metadata is included for PHP 8.3 and PHPMailer. Run `composer install` when network access is available and email features are being implemented in a later phase.
 
 ### Current Development Phases

@@ -300,6 +300,60 @@ body {
   align-self: center;
 }
 
+.portal-nav {
+  display: flex;
+  gap: .5rem;
+  overflow-x: auto;
+  padding-bottom: .25rem;
+}
+
+.portal-nav a {
+  border: 1px solid var(--border-color);
+  border-radius: .45rem;
+  color: var(--text-soft);
+  flex: 0 0 auto;
+  padding: .45rem .75rem;
+  text-decoration: none;
+}
+
+.portal-nav a:hover {
+  border-color: #2563eb;
+  color: #2563eb;
+}
+
+.detail-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detail-grid dt {
+  color: var(--text-soft);
+  font-size: .8rem;
+  font-weight: 700;
+}
+
+.detail-grid dd {
+  margin: .2rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.service-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.service-list div {
+  display: grid;
+  gap: .15rem;
+}
+
+.service-list span {
+  color: var(--text-soft);
+  font-size: .9rem;
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 992px) {
   .sidebar {
     transform: translateX(-100%);
@@ -338,5 +392,13 @@ body {
   .login-visual,
   .login-form {
     padding: 1.5rem;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-heading .btn {
+    align-self: flex-start;
   }
 }

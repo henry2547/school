@@ -16,6 +16,15 @@
             <span><?= e(app_config('name')) ?></span>
         </a>
         <nav class="nav flex-column gap-1">
+            <?php if (\App\Core\Auth::can('student.portal')): ?>
+                <a class="nav-link <?= e(active_nav('/student-portal')) ?>" href="<?= e(url('/student-portal')) ?>"><i class="bi bi-mortarboard"></i><span>My School</span></a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('teacher.portal')): ?>
+                <a class="nav-link <?= e(active_nav('/teacher-portal')) ?>" href="<?= e(url('/teacher-portal')) ?>"><i class="bi bi-person-workspace"></i><span>Teaching Dashboard</span></a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('parent.portal')): ?>
+                <a class="nav-link <?= e(active_nav('/parent-portal')) ?>" href="<?= e(url('/parent-portal')) ?>"><i class="bi bi-person-hearts"></i><span>Parent Dashboard</span></a>
+            <?php endif; ?>
             <a class="nav-link <?= e(active_nav('/dashboard')) ?>" href="<?= e(url('/dashboard')) ?>">
                 <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
             </a>

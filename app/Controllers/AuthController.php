@@ -42,7 +42,13 @@ final class AuthController
 
         User::touchLogin((int)$user['id']);
         AuditLog::record((int)$user['id'], 'login', 'users', (int)$user['id']);
-        redirect('/dashboard');
+        $portal = match ($user['role_slug']) {
+            'student' => '/student-portal',
+            'parent' => '/parent-portal',
+            'teacher', 'class-teacher' => '/teacher-portal',
+            default => '/dashboard',
+        };
+        redirect($portal);
     }
 
     public function logout(): void
