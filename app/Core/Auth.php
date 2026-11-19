@@ -28,7 +28,13 @@ final class Auth
 
     public static function can(string $permission): bool
     {
-        $permissions = self::user()['permissions'] ?? [];
+        $user = self::user();
+        if (in_array($user['role_slug'] ?? '', ['teacher', 'class-teacher'], true)
+            && !in_array($permission, ['dashboard.view', 'teacher.portal'], true)) {
+            return false;
+        }
+
+        $permissions = $user['permissions'] ?? [];
         return in_array($permission, $permissions, true);
     }
 

@@ -66,7 +66,13 @@ Implemented features:
     Parent:  mary.otieno@example.test
     ```
 
-    Student accounts open **My School**, showing only their own profile and school records. Teacher accounts open **Teaching Dashboard**, scoped to their profile, assigned classes and subjects, learners, submitted attendance and marks, staff notices, and events. Parent accounts open **Parent Dashboard**, showing only linked children and their fee, attendance, and academic records.
+    Student accounts open **My School**, showing their profile, assigned subjects and teachers, announced exam schedules, marks and feedback, class notices, attendance, fees, and school events. Teachers can publish notices only to their assigned classes; those notices are visible to the class students and their linked parents. Teacher accounts do not have access to unscoped administration pages. Parent accounts open **Parent Dashboard**, showing their own profile and only linked children’s subjects, exam schedules, marks and feedback, attendance, fees, and class notices. The navigation sidebar opens and closes on mobile.
+
+    For an existing database imported before class notices were added, run this one-time additive migration (do not run it after importing the updated full schema):
+
+    ```bash
+    /opt/lampp/bin/mysql -u root schoolhub < database/migrations/20261119_teacher_class_notices.sql
+    ```
 
 Composer metadata is included for PHP 8.3 and PHPMailer. Run `composer install` when network access is available and email features are being implemented in a later phase.
 

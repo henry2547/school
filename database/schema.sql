@@ -415,10 +415,12 @@ CREATE TABLE announcements (
     title VARCHAR(190) NOT NULL,
     body TEXT NOT NULL,
     audience ENUM('all','staff','parents','students') NOT NULL DEFAULT 'all',
+    class_stream_id BIGINT UNSIGNED NULL,
     published_at TIMESTAMP NULL,
     created_by BIGINT UNSIGNED NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_announcements_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+    CONSTRAINT fk_announcements_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL,
+    CONSTRAINT fk_announcements_class FOREIGN KEY (class_stream_id) REFERENCES class_streams(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 CREATE TABLE school_events (
@@ -564,13 +566,7 @@ WHERE roles.slug IN ('bursar', 'accountant');
 INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
-JOIN permissions ON permissions.slug IN ('dashboard.view', 'students.view', 'teachers.view', 'classes.view', 'attendance.view', 'attendance.manage', 'exams.view', 'exams.manage')
-WHERE roles.slug IN ('teacher', 'class-teacher');
-
-INSERT IGNORE INTO role_permissions (role_id, permission_id)
-SELECT roles.id, permissions.id
-FROM roles
-JOIN permissions ON permissions.slug = 'teacher.portal'
+JOIN permissions ON permissions.slug IN ('dashboard.view', 'teacher.portal')
 WHERE roles.slug IN ('teacher', 'class-teacher');
 
 INSERT IGNORE INTO role_permissions (role_id, permission_id)

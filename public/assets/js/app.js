@@ -8,8 +8,43 @@
     localStorage.setItem('schoolhub-theme', next);
   });
 
-  document.querySelector('[data-toggle-sidebar]')?.addEventListener('click', () => {
-    document.getElementById('sidebar')?.classList.toggle('open');
+  const sidebar = document.getElementById('sidebar');
+  const sidebarToggle = document.querySelector('[data-toggle-sidebar]');
+  const sidebarBackdrop = document.querySelector('[data-sidebar-backdrop]');
+  const sidebarIcon = sidebarToggle?.querySelector('[data-sidebar-icon]');
+  const mobileSidebar = window.matchMedia('(max-width: 992px)');
+  const setSidebarOpen = (open) => {
+    sidebar?.classList.toggle('open', open);
+    if (sidebarBackdrop) {
+      sidebarBackdrop.hidden = !open;
+    }
+    sidebarToggle?.setAttribute('aria-expanded', String(open));
+    sidebarToggle?.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+    sidebarIcon?.classList.toggle('bi-list', !open);
+    sidebarIcon?.classList.toggle('bi-x-lg', open);
+  };
+
+  sidebarToggle?.addEventListener('click', () => {
+    setSidebarOpen(!sidebar?.classList.contains('open'));
+  });
+  sidebarBackdrop?.addEventListener('click', () => setSidebarOpen(false));
+  sidebar?.querySelectorAll('a').forEach((link) => {
+    link.addEventListener('click', () => {
+      if (mobileSidebar.matches) {
+        setSidebarOpen(false);
+      }
+    });
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && sidebar?.classList.contains('open')) {
+      setSidebarOpen(false);
+      sidebarToggle?.focus();
+    }
+  });
+  mobileSidebar.addEventListener('change', (event) => {
+    if (!event.matches) {
+      setSidebarOpen(false);
+    }
   });
 
   document.querySelectorAll('form[data-confirm]').forEach((form) => {

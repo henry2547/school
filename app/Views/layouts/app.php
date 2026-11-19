@@ -24,6 +24,7 @@
             <?php endif; ?>
             <?php if (\App\Core\Auth::can('parent.portal')): ?>
                 <a class="nav-link <?= e(active_nav('/parent-portal')) ?>" href="<?= e(url('/parent-portal')) ?>"><i class="bi bi-person-hearts"></i><span>Parent Dashboard</span></a>
+                <a class="nav-link" href="<?= e(url('/parent-portal#profile')) ?>"><i class="bi bi-person-vcard"></i><span>My Profile</span></a>
             <?php endif; ?>
             <a class="nav-link <?= e(active_nav('/dashboard')) ?>" href="<?= e(url('/dashboard')) ?>">
                 <i class="bi bi-grid-1x2-fill"></i><span>Dashboard</span>
@@ -72,11 +73,12 @@
             <?php endif; ?>
         </nav>
     </aside>
+    <div class="sidebar-backdrop" data-sidebar-backdrop hidden></div>
 
     <div class="main-shell">
         <header class="topbar">
-            <button class="btn btn-icon d-lg-none" type="button" data-toggle-sidebar aria-label="Open menu">
-                <i class="bi bi-list"></i>
+            <button class="btn btn-icon d-lg-none" type="button" data-toggle-sidebar aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation menu">
+                <i class="bi bi-list" data-sidebar-icon></i>
             </button>
             <form class="search-box d-none d-md-flex" action="<?= e(url('/users')) ?>" method="get">
                 <i class="bi bi-search"></i>

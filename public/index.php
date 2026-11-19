@@ -59,6 +59,7 @@ $router->post('/students/update', [StudentController::class, 'update']);
 $router->post('/students/delete', [StudentController::class, 'destroy']);
 $router->get('/student-portal', [StudentPortalController::class, 'index']);
 $router->get('/teacher-portal', [TeacherPortalController::class, 'index']);
+$router->post('/teacher-portal/announcement', [TeacherPortalController::class, 'announce']);
 $router->get('/parent-portal', [ParentPortalController::class, 'index']);
 $router->get('/teachers', [TeacherController::class, 'index']);
 $router->get('/teachers/create', [TeacherController::class, 'create']);
