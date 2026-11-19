@@ -65,8 +65,14 @@ Composer metadata is included for PHP 8.3 and PHPMailer. Run `composer install` 
 - Phase 1: Authentication, roles, dashboard, user management.
 - Phase 2: Student, teacher, parent, and class management.
 - Phase 3: Attendance, fees, and examinations.
+- Phase 4: Library catalogue, inventory, transport fleet/routes, hostels, HR employee records, clinic visits, discipline, announcements, events, and certificate requests.
+- Phase 5: Operational reports, persisted school settings, audit logging, role permissions, print-ready screens, and responsive/dark-mode UI.
 
-Next recommended build step: Phase 4 for library circulation, inventory, transport, hostel, and HR.
+The administration screens under **Operations** use a constrained CRUD registry: only explicitly declared tables and fields are available to each screen. This keeps the broad operational modules maintainable and prevents arbitrary table/column access.
+
+### Verification
+
+All PHP files in the MVC application have passed syntax checks. To perform the database-backed smoke test locally, start MySQL first (for example, from the LAMPP manager as an administrator), then import the schema and visit `http://localhost/school/public`.
 
 ---
 
@@ -162,4 +168,4 @@ Inspired by real-world school management needs.
 
 ## Contact
 
-For questions or support, open an issue or contact [henrynjue255@gmail.com](mailto:your.email@example.com).
+For questions or support, open an issue or contact [henrynjue255@gmail.com](mailto:henrynjue255@gmail.com).

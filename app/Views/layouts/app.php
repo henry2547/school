@@ -43,7 +43,24 @@
             <?php if (\App\Core\Auth::can('exams.view')): ?>
                 <a class="nav-link <?= e(active_nav('/exams')) ?>" href="<?= e(url('/exams')) ?>"><i class="bi bi-clipboard-data"></i><span>Exams</span></a>
             <?php endif; ?>
-            <a class="nav-link disabled" href="#"><i class="bi bi-bar-chart-line"></i><span>Reports</span><span class="badge text-bg-secondary ms-auto">Phase 5</span></a>
+            <?php if (\App\Core\Auth::can('operations.view')): ?>
+                <div class="nav-section">Operations</div>
+                <a class="nav-link <?= e(active_nav('/operations?module=library')) ?>" href="<?= e(url('/operations?module=library')) ?>"><i class="bi bi-book"></i><span>Library</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=inventory')) ?>" href="<?= e(url('/operations?module=inventory')) ?>"><i class="bi bi-box-seam"></i><span>Inventory</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=vehicles')) ?>" href="<?= e(url('/operations?module=vehicles')) ?>"><i class="bi bi-bus-front"></i><span>Transport</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=hostels')) ?>" href="<?= e(url('/operations?module=hostels')) ?>"><i class="bi bi-building"></i><span>Hostel</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=employees')) ?>" href="<?= e(url('/operations?module=employees')) ?>"><i class="bi bi-person-badge"></i><span>HR</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=clinic')) ?>" href="<?= e(url('/operations?module=clinic')) ?>"><i class="bi bi-heart-pulse"></i><span>Clinic</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=announcements')) ?>" href="<?= e(url('/operations?module=announcements')) ?>"><i class="bi bi-megaphone"></i><span>Communication</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=discipline')) ?>" href="<?= e(url('/operations?module=discipline')) ?>"><i class="bi bi-shield-exclamation"></i><span>Discipline</span></a>
+                <a class="nav-link <?= e(active_nav('/operations?module=certificates')) ?>" href="<?= e(url('/operations?module=certificates')) ?>"><i class="bi bi-patch-check"></i><span>Certificates</span></a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('reports.view')): ?>
+                <a class="nav-link <?= e(active_nav('/reports')) ?>" href="<?= e(url('/reports')) ?>"><i class="bi bi-bar-chart-line"></i><span>Reports</span></a>
+            <?php endif; ?>
+            <?php if (\App\Core\Auth::can('settings.manage')): ?>
+                <a class="nav-link <?= e(active_nav('/operations?module=settings')) ?>" href="<?= e(url('/operations?module=settings')) ?>"><i class="bi bi-gear"></i><span>Settings</span></a>
+            <?php endif; ?>
         </nav>
     </aside>
 

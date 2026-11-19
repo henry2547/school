@@ -69,6 +69,15 @@ body {
   color: #2563eb;
 }
 
+.nav-section {
+  color: var(--text-soft);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  margin: 1rem .85rem .25rem;
+  text-transform: uppercase;
+}
+
 .main-shell {
   margin-left: var(--sidebar-width);
   min-width: 0;

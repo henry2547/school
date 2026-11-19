@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Core\Database;
+use RuntimeException;
 
 final class Fee
 {
@@ -34,13 +35,14 @@ final class Fee
     {
         Database::connection()->prepare(
             'INSERT INTO fee_invoices (student_id, term_id, invoice_no, description, amount, balance, due_date, status)
-             VALUES (:student_id, :term_id, :invoice_no, :description, :amount, :amount, :due_date, "issued")'
+             VALUES (:student_id, :term_id, :invoice_no, :description, :amount, :balance, :due_date, "issued")'
         )->execute([
             'student_id' => $data['student_id'],
             'term_id' => $data['term_id'] ?: null,
             'invoice_no' => $data['invoice_no'],
             'description' => $data['description'],
             'amount' => $data['amount'],
+            'balance' => $data['amount'],
             'due_date' => $data['due_date'],
         ]);
         return (int)Database::connection()->lastInsertId();
@@ -50,30 +52,53 @@ final class Fee
     {
         $pdo = Database::connection();
         $pdo->beginTransaction();
-        $pdo->prepare(
-            'INSERT INTO fee_payments (invoice_id, receipt_no, amount_paid, payment_method, payment_reference, received_by)
-             VALUES (:invoice_id, :receipt_no, :amount_paid, :payment_method, :payment_reference, :received_by)'
-        )->execute([
-            'invoice_id' => $data['invoice_id'],
-            'receipt_no' => $data['receipt_no'],
-            'amount_paid' => $data['amount_paid'],
-            'payment_method' => $data['payment_method'],
-            'payment_reference' => $data['payment_reference'] ?: null,
-            'received_by' => $userId,
-        ]);
-        $id = (int)$pdo->lastInsertId();
-        $pdo->prepare(
-            'UPDATE fee_invoices
-             SET balance = GREATEST(balance - :amount_paid, 0),
-                 status = CASE
-                    WHEN GREATEST(balance - :amount_paid, 0) = 0 THEN "paid"
-                    WHEN GREATEST(balance - :amount_paid, 0) < amount THEN "part_paid"
-                    ELSE status
-                 END
-             WHERE id = :invoice_id'
-        )->execute(['amount_paid' => $data['amount_paid'], 'invoice_id' => $data['invoice_id']]);
-        $pdo->commit();
-        return $id;
+        try {
+            $invoice = $pdo->prepare('SELECT balance FROM fee_invoices WHERE id = :invoice_id FOR UPDATE');
+            $invoice->execute(['invoice_id' => $data['invoice_id']]);
+            $balance = $invoice->fetchColumn();
+
+            if ($balance === false) {
+                throw new RuntimeException('The selected invoice no longer exists.');
+            }
+            if ((float)$data['amount_paid'] > (float)$balance) {
+                throw new RuntimeException('Payment cannot exceed the outstanding invoice balance.');
+            }
+
+            $pdo->prepare(
+                'INSERT INTO fee_payments (invoice_id, receipt_no, amount_paid, payment_method, payment_reference, received_by)
+                 VALUES (:invoice_id, :receipt_no, :amount_paid, :payment_method, :payment_reference, :received_by)'
+            )->execute([
+                'invoice_id' => $data['invoice_id'],
+                'receipt_no' => $data['receipt_no'],
+                'amount_paid' => $data['amount_paid'],
+                'payment_method' => $data['payment_method'],
+                'payment_reference' => $data['payment_reference'] ?: null,
+                'received_by' => $userId,
+            ]);
+            $id = (int)$pdo->lastInsertId();
+            $pdo->prepare(
+                'UPDATE fee_invoices
+                 SET balance = balance - :payment_amount,
+                     status = CASE
+                        WHEN balance - :status_amount = 0 THEN "paid"
+                        WHEN balance - :partial_amount < amount THEN "part_paid"
+                        ELSE status
+                     END
+                 WHERE id = :invoice_id'
+            )->execute([
+                'payment_amount' => $data['amount_paid'],
+                'status_amount' => $data['amount_paid'],
+                'partial_amount' => $data['amount_paid'],
+                'invoice_id' => $data['invoice_id'],
+            ]);
+            $pdo->commit();
+            return $id;
+        } catch (\Throwable $exception) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            throw $exception;
+        }
     }
 
     public static function nextInvoiceNo(): string

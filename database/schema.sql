@@ -4,6 +4,22 @@ USE schoolhub;
 SET FOREIGN_KEY_CHECKS = 0;
 
 DROP TABLE IF EXISTS audit_logs;
+DROP TABLE IF EXISTS certificate_requests;
+DROP TABLE IF EXISTS discipline_cases;
+DROP TABLE IF EXISTS clinic_visits;
+DROP TABLE IF EXISTS school_events;
+DROP TABLE IF EXISTS announcements;
+DROP TABLE IF EXISTS leave_requests;
+DROP TABLE IF EXISTS employees;
+DROP TABLE IF EXISTS hostel_allocations;
+DROP TABLE IF EXISTS hostel_rooms;
+DROP TABLE IF EXISTS hostels;
+DROP TABLE IF EXISTS transport_assignments;
+DROP TABLE IF EXISTS transport_routes;
+DROP TABLE IF EXISTS vehicles;
+DROP TABLE IF EXISTS stock_movements;
+DROP TABLE IF EXISTS inventory_items;
+DROP TABLE IF EXISTS book_loans;
 DROP TABLE IF EXISTS exam_results;
 DROP TABLE IF EXISTS exams;
 DROP TABLE IF EXISTS fee_payments;
@@ -181,7 +197,7 @@ CREATE TABLE student_parent (
 CREATE TABLE teacher_subjects (
     teacher_id BIGINT UNSIGNED NOT NULL,
     subject_id BIGINT UNSIGNED NOT NULL,
-    class_stream_id BIGINT UNSIGNED NULL,
+    class_stream_id BIGINT UNSIGNED NOT NULL,
     PRIMARY KEY (teacher_id, subject_id, class_stream_id),
     CONSTRAINT fk_teacher_subjects_teacher FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
     CONSTRAINT fk_teacher_subjects_subject FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE,
@@ -276,6 +292,182 @@ CREATE TABLE library_books (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
+CREATE TABLE book_loans (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    book_id BIGINT UNSIGNED NOT NULL,
+    student_id BIGINT UNSIGNED NOT NULL,
+    issued_on DATE NOT NULL,
+    due_on DATE NOT NULL,
+    returned_on DATE NULL,
+    fine_amount DECIMAL(10,2) NOT NULL DEFAULT 0,
+    INDEX idx_book_loans_status (returned_on, due_on),
+    CONSTRAINT fk_book_loans_book FOREIGN KEY (book_id) REFERENCES library_books(id),
+    CONSTRAINT fk_book_loans_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE inventory_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    item_code VARCHAR(60) NOT NULL UNIQUE,
+    name VARCHAR(160) NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    quantity_on_hand INT NOT NULL DEFAULT 0,
+    reorder_level INT NOT NULL DEFAULT 0,
+    unit_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
+    status ENUM('active','damaged','retired') NOT NULL DEFAULT 'active',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE stock_movements (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    inventory_item_id BIGINT UNSIGNED NOT NULL,
+    movement_type ENUM('in','out','adjustment') NOT NULL,
+    quantity INT NOT NULL,
+    notes VARCHAR(255) NULL,
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_stock_item FOREIGN KEY (inventory_item_id) REFERENCES inventory_items(id),
+    CONSTRAINT fk_stock_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE vehicles (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    registration_no VARCHAR(40) NOT NULL UNIQUE,
+    make_model VARCHAR(150) NOT NULL,
+    capacity INT UNSIGNED NOT NULL,
+    driver_name VARCHAR(150) NULL,
+    driver_phone VARCHAR(40) NULL,
+    status ENUM('active','maintenance','inactive') NOT NULL DEFAULT 'active'
+) ENGINE=InnoDB;
+
+CREATE TABLE transport_routes (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    vehicle_id BIGINT UNSIGNED NULL,
+    name VARCHAR(150) NOT NULL,
+    pickup_points TEXT NULL,
+    monthly_fee DECIMAL(12,2) NOT NULL DEFAULT 0,
+    status ENUM('active','inactive') NOT NULL DEFAULT 'active',
+    CONSTRAINT fk_routes_vehicle FOREIGN KEY (vehicle_id) REFERENCES vehicles(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE transport_assignments (
+    student_id BIGINT UNSIGNED NOT NULL,
+    route_id BIGINT UNSIGNED NOT NULL,
+    assigned_on DATE NOT NULL,
+    PRIMARY KEY (student_id, route_id),
+    CONSTRAINT fk_transport_student FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    CONSTRAINT fk_transport_route FOREIGN KEY (route_id) REFERENCES transport_routes(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE hostels (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(150) NOT NULL UNIQUE,
+    gender ENUM('male','female','mixed') NOT NULL,
+    warden_name VARCHAR(150) NULL,
+    status ENUM('active','inactive') NOT NULL DEFAULT 'active'
+) ENGINE=InnoDB;
+
+CREATE TABLE hostel_rooms (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    hostel_id BIGINT UNSIGNED NOT NULL,
+    room_no VARCHAR(40) NOT NULL,
+    bed_capacity INT UNSIGNED NOT NULL,
+    status ENUM('active','maintenance','inactive') NOT NULL DEFAULT 'active',
+    UNIQUE KEY uq_hostel_room (hostel_id, room_no),
+    CONSTRAINT fk_rooms_hostel FOREIGN KEY (hostel_id) REFERENCES hostels(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE hostel_allocations (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    room_id BIGINT UNSIGNED NOT NULL,
+    student_id BIGINT UNSIGNED NOT NULL,
+    checked_in_on DATE NOT NULL,
+    checked_out_on DATE NULL,
+    INDEX idx_hostel_allocations_active (student_id, checked_out_on),
+    CONSTRAINT fk_allocations_room FOREIGN KEY (room_id) REFERENCES hostel_rooms(id),
+    CONSTRAINT fk_allocations_student FOREIGN KEY (student_id) REFERENCES students(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE employees (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    employee_no VARCHAR(60) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
+    department VARCHAR(120) NOT NULL,
+    job_title VARCHAR(120) NOT NULL,
+    phone VARCHAR(40) NULL,
+    salary DECIMAL(12,2) NOT NULL DEFAULT 0,
+    status ENUM('active','inactive') NOT NULL DEFAULT 'active'
+) ENGINE=InnoDB;
+
+CREATE TABLE leave_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    employee_id BIGINT UNSIGNED NOT NULL,
+    leave_type VARCHAR(60) NOT NULL,
+    starts_on DATE NOT NULL,
+    ends_on DATE NOT NULL,
+    reason TEXT NULL,
+    status ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+    CONSTRAINT fk_leave_employee FOREIGN KEY (employee_id) REFERENCES employees(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE announcements (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(190) NOT NULL,
+    body TEXT NOT NULL,
+    audience ENUM('all','staff','parents','students') NOT NULL DEFAULT 'all',
+    published_at TIMESTAMP NULL,
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_announcements_user FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE school_events (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    title VARCHAR(190) NOT NULL,
+    event_type VARCHAR(80) NOT NULL,
+    starts_at DATETIME NOT NULL,
+    ends_at DATETIME NULL,
+    location VARCHAR(190) NULL,
+    description TEXT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE clinic_visits (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT UNSIGNED NOT NULL,
+    visited_at DATETIME NOT NULL,
+    complaint VARCHAR(255) NOT NULL,
+    treatment TEXT NULL,
+    disposition ENUM('returned_to_class','sent_home','referred') NOT NULL DEFAULT 'returned_to_class',
+    handled_by BIGINT UNSIGNED NULL,
+    CONSTRAINT fk_clinic_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_clinic_user FOREIGN KEY (handled_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE discipline_cases (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT UNSIGNED NOT NULL,
+    incident_date DATE NOT NULL,
+    category VARCHAR(100) NOT NULL,
+    details TEXT NOT NULL,
+    action_taken VARCHAR(255) NULL,
+    status ENUM('open','resolved','escalated') NOT NULL DEFAULT 'open',
+    recorded_by BIGINT UNSIGNED NULL,
+    CONSTRAINT fk_discipline_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_discipline_user FOREIGN KEY (recorded_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE certificate_requests (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    student_id BIGINT UNSIGNED NOT NULL,
+    certificate_type ENUM('admission','leaving','bonafide','character','fee_clearance','id_card') NOT NULL,
+    status ENUM('requested','approved','issued','rejected') NOT NULL DEFAULT 'requested',
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    issued_at TIMESTAMP NULL,
+    issued_by BIGINT UNSIGNED NULL,
+    CONSTRAINT fk_certificate_student FOREIGN KEY (student_id) REFERENCES students(id),
+    CONSTRAINT fk_certificate_user FOREIGN KEY (issued_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
 CREATE TABLE audit_logs (
     id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     user_id BIGINT UNSIGNED NULL,
@@ -333,42 +525,60 @@ INSERT INTO permissions (name, slug, module) VALUES
 ('Manage Finance', 'finance.manage', 'finance'),
 ('View Exams', 'exams.view', 'exams'),
 ('Manage Exams', 'exams.manage', 'exams'),
+('View Operations', 'operations.view', 'operations'),
+('Manage Operations', 'operations.manage', 'operations'),
 ('View Reports', 'reports.view', 'reports'),
 ('Manage Settings', 'settings.manage', 'settings');
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
 CROSS JOIN permissions
 WHERE roles.slug = 'super-admin';
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
 JOIN permissions ON permissions.slug IN (
     'dashboard.view', 'users.view', 'students.view', 'students.manage',
     'teachers.view', 'teachers.manage', 'classes.view', 'classes.manage',
-    'attendance.view', 'attendance.manage', 'finance.view', 'exams.view', 'exams.manage', 'reports.view'
+    'attendance.view', 'attendance.manage', 'finance.view', 'exams.view', 'exams.manage', 'operations.view', 'operations.manage', 'reports.view'
 )
 WHERE roles.slug IN ('school-administrator', 'principal', 'deputy-principal', 'admissions-officer');
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
+SELECT roles.id, permissions.id
+FROM roles
+JOIN permissions ON permissions.slug IN ('dashboard.view', 'operations.view', 'operations.manage')
+WHERE roles.slug IN ('librarian', 'nurse', 'transport-manager', 'hostel-manager', 'security-officer', 'store-keeper');
+
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
 JOIN permissions ON permissions.slug IN ('dashboard.view', 'finance.view', 'finance.manage', 'reports.view')
 WHERE roles.slug IN ('bursar', 'accountant');
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
 JOIN permissions ON permissions.slug IN ('dashboard.view', 'students.view', 'teachers.view', 'classes.view', 'attendance.view', 'attendance.manage', 'exams.view', 'exams.manage')
 WHERE roles.slug IN ('teacher', 'class-teacher');
 
-INSERT INTO role_permissions (role_id, permission_id)
+INSERT IGNORE INTO role_permissions (role_id, permission_id)
 SELECT roles.id, permissions.id
 FROM roles
-JOIN permissions ON permissions.slug IN ('dashboard.view', 'students.view')
-WHERE roles.slug IN ('student', 'parent', 'librarian', 'nurse', 'transport-manager', 'hostel-manager', 'security-officer', 'store-keeper');
+JOIN permissions
+    ON permissions.slug IN ('dashboard.view', 'students.view')
+WHERE roles.slug IN (
+    'student',
+    'parent',
+    'librarian',
+    'nurse',
+    'transport-manager',
+    'hostel-manager',
+    'security-officer',
+    'store-keeper'
+);
 
 INSERT INTO users (role_id, first_name, last_name, email, phone, password_hash, status)
 SELECT id, 'System', 'Admin', 'admin@school.test', '+254700000000',
@@ -453,6 +663,44 @@ INSERT INTO library_books (isbn, title, author, copies_total, copies_available) 
 ('9789966001010', 'Integrated Science Form 1', 'Kenya Literature Bureau', 12, 9),
 ('9789966001027', 'Mathematics Learner Book', 'Longhorn Publishers', 20, 17),
 ('9789966001034', 'English Grammar Companion', 'Moran Publishers', 10, 10);
+
+INSERT INTO inventory_items (item_code, name, category, quantity_on_hand, reorder_level, unit_cost) VALUES
+('INV-001', 'Student Desk', 'Furniture', 90, 15, 4200),
+('INV-002', 'Laboratory Microscope', 'Laboratory', 12, 3, 18500),
+('INV-003', 'A4 Paper Ream', 'Stationery', 25, 10, 750);
+
+INSERT INTO vehicles (registration_no, make_model, capacity, driver_name, driver_phone, status) VALUES
+('KDD 101A', 'Isuzu School Bus', 55, 'John Kariuki', '+254722100101', 'active');
+
+INSERT INTO transport_routes (vehicle_id, name, pickup_points, monthly_fee) VALUES
+(1, 'Nairobi West Route', 'Kawangware, Ngong Road, Kilimani', 6500);
+
+INSERT INTO hostels (name, gender, warden_name) VALUES
+('Acacia House', 'female', 'Jane Wambui'),
+('Cedar House', 'male', 'David Ouma');
+
+INSERT INTO hostel_rooms (hostel_id, room_no, bed_capacity) VALUES
+(1, 'A-01', 6), (1, 'A-02', 6), (2, 'C-01', 6);
+
+INSERT INTO employees (employee_no, first_name, last_name, department, job_title, phone, salary) VALUES
+('EMP-001', 'John', 'Kariuki', 'Transport', 'Driver', '+254722100101', 42000),
+('EMP-002', 'Jane', 'Wambui', 'Hostel', 'Warden', '+254722100102', 45000),
+('EMP-003', 'Martha', 'Auma', 'Health', 'School Nurse', '+254722100103', 48000);
+
+INSERT INTO announcements (title, body, audience, published_at, created_by) VALUES
+('Term 2 Midterm', 'Midterm assessments begin on 6 July. Students should confirm their examination schedules.', 'all', NOW(), 1);
+
+INSERT INTO school_events (title, event_type, starts_at, ends_at, location) VALUES
+('Parents Meeting', 'PTA Meeting', '2026-07-18 09:00:00', '2026-07-18 12:00:00', 'Main Hall');
+
+INSERT INTO clinic_visits (student_id, visited_at, complaint, treatment, disposition, handled_by) VALUES
+(1, NOW(), 'Mild asthma symptoms', 'Inhaler administered and student observed.', 'returned_to_class', 1);
+
+INSERT INTO discipline_cases (student_id, incident_date, category, details, action_taken, status, recorded_by) VALUES
+(2, '2026-06-04', 'Late coming', 'Late arrival after morning assembly.', 'Counselling conducted.', 'resolved', 1);
+
+INSERT INTO certificate_requests (student_id, certificate_type, status, issued_at, issued_by) VALUES
+(1, 'bonafide', 'issued', NOW(), 1);
 
 INSERT INTO school_settings (setting_key, setting_value) VALUES
 ('school_name', 'Demo International School'),
